@@ -2,9 +2,9 @@
 
 #include "pch.h"
 
-CVEHICLE::CVEHICLE()
+CVEHICLE::CVEHICLE(int order)
 {
-	mX = 0;
+	mX = 0+(order-1)*4;
 	mY = 0;
 }
 void CVEHICLE::Move(int, int)
@@ -37,9 +37,9 @@ void CTRUCK::Move(int a)
 	}
 }
 
-CANIMAL::CANIMAL()
+CANIMAL::CANIMAL(int order)
 {
-	mX = 0;
+	mX = 0+(order-1)*4;
 	mY = 0;
 }
 
