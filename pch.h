@@ -1,45 +1,73 @@
-﻿
-#ifndef PCH_H
-#define PCH_H
-#include <iostream>
-#include <vector>
-using namespace std;
-class CVEHICLE {
-	int mX, mY;
-public:
-	virtual void Move(int a, int b);
-};
+// pch.cpp: source file corresponding to pre-compiled header; necessary for compilation to succeed
 
-class CTRUCK : public CVEHICLE
+#include "pch.h"
+
+CVEHICLE::CVEHICLE()
 {
-// 5 trucks per line
-public:
-	void Move(int a);
-};
-
-class CCAR : public CVEHICLE
+	mX = 0;
+	mY = 0;
+}
+void CVEHICLE::Move(int, int)
 {
-public:
-	void Move(int a);
-};
+	int a = 1;
+	while (a % 100 != 0) a++;
+	
+		if (mX + 1 > 20) mX = 0;
+		else mX += 1;
+		mY = 0;
+	
+}
 
-class CANIMAL {
-	int mX, mY;
-public:
-	virtual void Move(int a, int b);
-	virtual void Tell(); //sound of animal
-};
 
-class CDINAUSOR : public CANIMAL {
-public:
-	void Move(int a);
-	void Tell(); //Haven't declare
-};
+void CCAR::Move(int a)
+{
+	while (a > 0)
+	{
+		CVEHICLE::Move(0, 0);
+		a--;
+	}
+}
 
-class CBIRD : public CANIMAL {
-public:
-	void Move(int a, int b);
-	void Tell();
-};
+void CTRUCK::Move(int a)
+{
+	while (a > 0)
+	{
+		CVEHICLE::Move(0, 0);
+		a--;
+	}
+}
 
-#endif
+CANIMAL::CANIMAL()
+{
+	mX = 0;
+	mY = 0;
+}
+
+void CANIMAL::Move(int, int)
+{
+	int a = 1;
+	while (a % 100 != 0) a++;
+
+	if (mX + 1 > 20) mX = 0;
+	else mX += 1;
+}
+
+
+void CDINAUSOR::Move(int a)
+{
+	CANIMAL::Move(a, 0);
+}
+
+void CBIRD::Move(int a, int b)
+{
+	if (b == 0)
+	{
+		CANIMAL::Move(a, 2);
+		b == 1;
+	}
+	if (b == 1)
+	{
+		CANIMAL::Move(a, 0);
+		b == 0;
+	}
+}
