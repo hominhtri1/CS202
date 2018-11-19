@@ -7,6 +7,8 @@ class Human
 private:
 	int x, y;
 
+	bool checkFrame(int a, int b);
+
 public:
 	Human();
 
@@ -17,6 +19,8 @@ public:
 	void down();
 	void left();
 	void right();
+
+	bool atFinish();
 
 };
 

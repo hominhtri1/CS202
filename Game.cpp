@@ -6,7 +6,7 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P)
 	{
 		gP->draw();
 
-		Sleep(100);
+		Sleep(10);
 	}
 }
 
@@ -36,6 +36,13 @@ void Game::run()
 			hu.left();
 		else if (input == 68)
 			hu.right();
+
+		if (hu.atFinish())
+		{
+			Sleep(100);
+			exitGame(&bgThread, &IS_RUNNING);
+			break;
+		}
 	}
 }
 
