@@ -7,7 +7,7 @@ using namespace std;
 class CVEHICLE {
 	int mX, mY;
 public:
-	CVEHICLE();
+	CVEHICLE(int order);
 	virtual void Move(int, int);
 };
 
@@ -27,7 +27,7 @@ public:
 class CANIMAL {
 	int mX, mY;
 public:
-	CANIMAL();
+	CANIMAL(int order);
 	virtual void Move(int, int);
 	virtual void Fly(int, int); //Haven't declare
 	virtual void Tell(); //Sound of animal
