@@ -3,14 +3,18 @@
 
 #include "Header.h"
 #include "Human.h"
+#include "Obstacle.h"
 
 class Game
 {
 
 private:
 	Human hu;
+	CVEHICLE* ve;
 
 public:
+	Game();
+
 	void run();
 
 	void draw();
@@ -18,6 +22,12 @@ public:
 	void gotoXY(int x, int y);
 
 	void exitGame(thread* t, bool* IS_RUNNING_P);
+
+	void updateVehicle();
+
+	bool isHumanDead();
+
+	~Game();
 
 };
 

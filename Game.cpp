@@ -2,15 +2,27 @@
 
 void backgroundThread(Game* gP, bool* IS_RUNNING_P)
 {
-	while (*IS_RUNNING_P)
+	while (*IS_RUNNING_P & !gP->isHumanDead())
 	{
 		gP->draw();
 
+		gP->updateVehicle();
+
+		gP->isHumanDead();
+
 		Sleep(10);
 	}
+
+	if (gP->isHumanDead())
+		cout << "You are dead" << endl;
 }
 
 
+
+Game::Game()
+{
+	ve = new CVEHICLE(0, 5);
+}
 
 void Game::run()
 {
@@ -21,6 +33,12 @@ void Game::run()
 	while (true)
 	{
 		int input = toupper(_getch());
+
+		if (hu.isDead())
+		{
+			exitGame(&bgThread, &IS_RUNNING);
+			break;
+		}
 
 		if (input == 27)
 		{
@@ -55,6 +73,8 @@ void Game::draw()
 		for (int j = 0; j < 10; ++j)
 			if (i == hu.getX() && j == hu.getY())
 				cout << "H";
+			else if (i == ve->getMX() && j == ve->getMY())
+				cout << "O";
 			else
 				cout << "_";
 
@@ -75,4 +95,19 @@ void Game::exitGame(thread* t, bool* IS_RUNNING_P)
 	*IS_RUNNING_P = false;
 
 	t->join();
+}
+
+void Game::updateVehicle()
+{
+	ve->Move();
+}
+
+Game::~Game()
+{
+	delete ve;
+}
+
+bool Game::isHumanDead()
+{
+	return hu.collide(ve);
 }

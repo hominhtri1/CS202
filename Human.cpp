@@ -4,6 +4,7 @@ Human::Human()
 {
 	x = 9;
 	y = 0;
+	dead = false;
 }
 
 int Human::getX()
@@ -48,4 +49,20 @@ bool Human::checkFrame(int a, int b)
 bool Human::atFinish()
 {
 	return (x == 0);
+}
+
+bool Human::collide(CVEHICLE* ve)
+{
+	if (x == ve->getMX() && y == ve->getMY())
+	{
+		dead = true;
+		return true;
+	}
+	else
+		return false;
+}
+
+bool Human::isDead()
+{
+	return dead;
 }
