@@ -31,6 +31,6 @@ public:
 
 };
 
-void backgroundThread(Game* gP, bool* IS_RUNNING_P);
+void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P);
 
 #endif
