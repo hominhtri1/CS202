@@ -25,7 +25,7 @@ public:
 
 	bool atFinish();
 
-	bool collide(CVEHICLE* ve);
+	bool collide(Obstacle* ve);
 
 	bool isDead();
 

@@ -1,6 +1,6 @@
 #include "Obstacle.h"
 
-CVEHICLE::CVEHICLE(int order, int x)
+Obstacle::Obstacle(int order, int x)
 {
 	mY = order * 4;
 	mX = x;
@@ -8,21 +8,21 @@ CVEHICLE::CVEHICLE(int order, int x)
 	counter = 0;
 }
 
-int CVEHICLE::getMX()
+int Obstacle::getMX()
 {
 	return mX;
 }
 
-int CVEHICLE::getMY()
+int Obstacle::getMY()
 {
 	return mY;
 }
 
-void CVEHICLE::Move()
+void Obstacle::Move()
 {
 	++counter;
 
-	if (counter == 100)
+	if (counter == 10)
 	{
 		if (mY + 1 != 10)
 			++mY;

@@ -25,14 +25,21 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 	// When there is collision, above loop will exit and the below line is printed
 	// Depending on input, new game is started or program exits
 	if (gP->isHumanDead())
-		cout << "y to continue" << endl;
+		cout << "y to continue, n to end" << endl;
+}
+
+void startGame()
+{
+	system("cls");
+	Game g;
+	g.run();
 }
 
 
 
 Game::Game()
 {
-	ve = new CVEHICLE(0, 5);
+	ve = new Obstacle(0, 5);
 }
 
 // Handles most of the control flow
@@ -44,6 +51,14 @@ void Game::run()
 	// Is set to true when "p" is pressed
 	// Separate from IS_RUNNING because different flow control is needed
 	bool IS_PAUSE = false;
+
+	// To handle the unwanted effect where if the user hold a move button toward an obstacle then the game will jump out
+	// It is better when the game stop at a screen, notifying the user that they have lost
+	// When the user collides with an obstacle, IS_END is set to true to avoid the _getch loop joining the background
+	// thread multiple times
+	bool IS_END = false;
+
+	showConsoleCursor(false);
 
 	// Background thread handling pausing, drawing, updating obstacle positions,
 	// and checking for collisions
@@ -66,14 +81,18 @@ void Game::run()
 		// If dead, end game. Except when input = "y", then game is reset
 		if (hu.isDead())
 		{
-			exitGame(&bgThread, &IS_RUNNING);
-
-			if (input == 89)
+			// exitGame is only called once
+			if (!IS_END)
 			{
-				system("cls");
-				Game g;
-				g.run();
+				exitGame(&bgThread, &IS_RUNNING);
+				IS_END = true;
 			}
+
+			// If input = "y", reset. If input = "n", end game. Otherwise, read input again
+			if (input == 89)
+				startGame();
+			else if (input != 78)
+				continue;
 
 			break;
 		}
@@ -90,14 +109,7 @@ void Game::run()
 		}
 
 		// Up, down, left, right
-		if (input == 87)
-			hu.up();
-		else if (input == 83)
-			hu.down();
-		else if (input == 65)
-			hu.left();
-		else if (input == 68)
-			hu.right();
+		moveHuman(input);
 
 		// Human at finish line
 		if (hu.atFinish())
@@ -150,12 +162,35 @@ void Game::updateVehicle()
 	ve->Move();
 }
 
-Game::~Game()
-{
-	delete ve;
-}
-
 bool Game::isHumanDead()
 {
 	return hu.collide(ve);
+}
+
+void Game::moveHuman(int input)
+{
+	if (input == 87)
+		hu.up();
+	else if (input == 83)
+		hu.down();
+	else if (input == 65)
+		hu.left();
+	else if (input == 68)
+		hu.right();
+}
+
+void Game::showConsoleCursor(bool showFlag)
+{
+	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	CONSOLE_CURSOR_INFO cursorInfo;
+
+	GetConsoleCursorInfo(out, &cursorInfo);
+	cursorInfo.bVisible = showFlag;
+	SetConsoleCursorInfo(out, &cursorInfo);
+}
+
+Game::~Game()
+{
+	delete ve;
 }

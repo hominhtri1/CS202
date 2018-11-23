@@ -51,7 +51,7 @@ bool Human::atFinish()
 	return (x == 0);
 }
 
-bool Human::collide(CVEHICLE* ve)
+bool Human::collide(Obstacle* ve)
 {
 	if (x == ve->getMX() && y == ve->getMY())
 	{

@@ -10,7 +10,7 @@ class Game
 
 private:
 	Human hu;
-	CVEHICLE* ve;
+	Obstacle* ve;
 
 public:
 	Game();
@@ -27,10 +27,16 @@ public:
 
 	bool isHumanDead();
 
+	void moveHuman(int input);
+
+	void showConsoleCursor(bool showFlag);
+
 	~Game();
 
 };
 
 void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P);
+
+void startGame();
 
 #endif
