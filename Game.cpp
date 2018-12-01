@@ -39,10 +39,15 @@ void startGame()
 
 Game::Game()
 {
-	for (int i = 0; i <2; i ++)
+	for (int j = 0; j < 9; j++)
 	{
-		Obstacle* x = new Obstacle(i,5); //fix
-		ve.push_back(x);
+		vector<Obstacle*>y;
+		for (int i = 0; i <1; i++) //modify number of obstacle here
+		{
+			Obstacle* x = new Obstacle(i,j); //fix
+			y.push_back(x);
+		}
+		ve.push_back(y);
 	}
 
 }
@@ -133,16 +138,24 @@ void Game::draw()
 	for (int i = 0; i < 10; ++i)
 	{
 		for (int j = 0; j < 10; ++j)
+		{
 			if (i == hu.getX() && j == hu.getY())
 				cout << "Y";
-			else if (i == ve[0]->getMX()&& j == ve[0]->getMY())
-				cout << "O";
-			else if (i == ve[1]->getMX() && j == ve[1]->getMY())
-				cout << "O";
-			
 			else
-				cout << "_";
-
+			{
+				if (i == 9) cout << "_";
+				else
+				{
+					for (int m = 0; m < ve[i].size(); m++)
+					{
+						if (j == ve[i][m]->getMY())
+						cout << "O";
+						else if (m == ve[i].size() - 1)
+						cout << "_";
+					}
+				}
+			}
+		}
 		cout << endl;
 	}
 }
@@ -167,9 +180,12 @@ void Game::exitGame(thread* t, bool* IS_RUNNING_P)
 
 void Game::updateVehicle()
 {
-	for (int i = 0; i <ve.size(); i++)
+	for (int i = 0; i < ve.size(); i++)
 	{
-		ve[i]->Move();
+		for (int j = 0; j < ve[i].size(); j++)
+		{
+			ve[i][j]->Move();
+		}
 	}
 }
 
@@ -177,7 +193,10 @@ bool Game::isHumanDead()
 {
 	for (int i = 0; i < ve.size(); i++)
 	{
-		if(hu.collide(ve[i])) return true;
+		for (int j = 0; j < ve[i].size(); j++)
+		{
+			if (hu.collide(ve[i][j])) return true;
+		}
 	}
 	return false;
 }
@@ -209,6 +228,7 @@ Game::~Game()
 {
 	for (int i = 0; i < ve.size(); i++)
 	{
-		delete ve[i];
+		for(int j=0;j<ve[i].size();j++)
+		delete ve[i][j];
 	}
 }

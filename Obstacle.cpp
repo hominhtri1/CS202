@@ -1,8 +1,10 @@
 #include "Obstacle.h"
 
-Obstacle::Obstacle(int order, int x)
+Obstacle::Obstacle(int y, int x)
 {
-	mY = order *4;
+	int distance; //distance between obstacle
+	distance = 5;
+	mY = y *distance;
 	mX = x;
 
 	counter = 0;
@@ -22,7 +24,7 @@ void Obstacle::Move()
 {
 	++counter;
 
-	if (counter == 10)
+	if (counter == 1+8*mX)
 	{
 		if (mY + 1 != 10)
 			++mY;

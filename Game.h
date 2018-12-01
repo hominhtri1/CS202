@@ -10,7 +10,7 @@ class Game
 
 private:
 	Human hu;
-	vector<Obstacle*> ve; //change to vector
+	vector<vector<Obstacle*>> ve; //change to vector
 
 public:
 	Game();

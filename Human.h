@@ -7,7 +7,7 @@ class Human
 {
 
 private:
-	int x, y;
+	int x, y; //rotate Oxy coordinate by 90 degrees, O is at top-left
 	bool dead;
 
 	bool checkFrame(int a, int b);
