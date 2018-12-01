@@ -3,14 +3,18 @@
 
 #include "Header.h"
 #include "Human.h"
+#include "Obstacle.h"
 
 class Game
 {
 
 private:
 	Human hu;
+	vector<Obstacle*> ve; //change to vector
 
 public:
+	Game();
+
 	void run();
 
 	void draw();
@@ -19,8 +23,20 @@ public:
 
 	void exitGame(thread* t, bool* IS_RUNNING_P);
 
+	void updateVehicle();
+
+	bool isHumanDead();
+
+	void moveHuman(int input);
+
+	void showConsoleCursor(bool showFlag);
+
+	~Game();
+
 };
 
-void backgroundThread(Game* gP, bool* IS_RUNNING_P);
+void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P);
+
+void startGame();
 
 #endif
