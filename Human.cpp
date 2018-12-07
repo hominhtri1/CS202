@@ -1,9 +1,9 @@
 #include "Human.h"
 
-Human::Human()
+Human::Human(int x, int y)
 {
-	x = 9;
-	y = 0;
+	this->x = x;
+	this->y = y;
 	dead = false;
 }
 

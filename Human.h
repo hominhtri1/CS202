@@ -13,7 +13,7 @@ private:
 	bool checkFrame(int a, int b);
 
 public:
-	Human();
+	Human(int x, int y);
 
 	int getX();
 	int getY();

@@ -1,10 +1,16 @@
 #include "Obstacle.h"
 
-Obstacle::Obstacle(int order, int x)
+Obstacle::Obstacle(int x, int y)
 {
-	mY = order * 4;
 	mX = x;
+	mY = y;
 
+	counter = 0;
+}
+
+Obstacle::Obstacle(ifstream& fin)
+{
+	fin >> mX >> mY;
 	counter = 0;
 }
 
@@ -18,17 +24,26 @@ int Obstacle::getMY()
 	return mY;
 }
 
-void Obstacle::Move()
+void Obstacle::inc()
 {
-	++counter;
-
-	if (counter == 10)
-	{
-		if (mY + 1 != 10)
-			++mY;
-		else
-			mY = 0;
-
+	if (counter < 15)
+		++counter;
+	else
 		counter = 0;
-	}
+}
+
+bool Obstacle::isTime()
+{
+	return (counter == 0);
+}
+
+void Obstacle::Move(bool move)
+{
+	if (!move)
+		return;
+
+	if (mY + 1 != 10)
+		++mY;
+	else
+		mY = 0;
 }

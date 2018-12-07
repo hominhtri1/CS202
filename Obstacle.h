@@ -1,6 +1,8 @@
 #ifndef _OBSTACLE_H_
 #define _OBSTACLE_H_
 
+#include "Header.h"
+
 class Obstacle {
 
 private:
@@ -8,12 +10,17 @@ private:
 	int counter;
 
 public:
-	Obstacle(int order, int x);
+	Obstacle(int x, int y);
+	Obstacle(ifstream& fin);
 
 	int getMX();
 	int getMY();
 
-	void Move();
+	void inc();
+
+	bool isTime();
+
+	void Move(bool move);
 
 };
 

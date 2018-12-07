@@ -2,7 +2,7 @@
 
 int main()
 {
-	startGame();
+	startLevel(7);
 
 	return 0;
 }
