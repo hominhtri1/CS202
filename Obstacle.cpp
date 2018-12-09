@@ -52,9 +52,9 @@ void Obstacle::Move(bool move)
 	}
 	else
 	{
-		if (mY + 1 != 0)
+		if (mY!= 0)
 			--mY;
 		else
-			mY = 10;
+			mY = 9;
 	}
 }
