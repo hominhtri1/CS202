@@ -1,12 +1,18 @@
 #include "Obstacle.h"
 
-Obstacle::Obstacle(int y, int x)
+Obstacle::Obstacle(int x, int y, int z)
 {
-	int distance; //distance between obstacle
-	distance = 5;
-	mY = y *distance;
 	mX = x;
+	mY = y;
+	direction = 1;
+	if (z==1||z==-1)
+	direction = z;
+	counter = 0;
+}
 
+Obstacle::Obstacle(ifstream& fin)
+{
+	fin >> mX >> mY;
 	counter = 0;
 }
 
@@ -20,17 +26,35 @@ int Obstacle::getMY()
 	return mY;
 }
 
-void Obstacle::Move()
+void Obstacle::inc()
 {
-	++counter;
+	if (counter < 15)
+		++counter;
+	else
+		counter = 0;
+}
 
-	if (counter == 1+8*mX)
+bool Obstacle::isTime()
+{
+	return (counter == 0);
+}
+
+void Obstacle::Move(bool move)
+{
+	if (!move)
+		return;
+	if (direction == 1)
 	{
 		if (mY + 1 != 10)
 			++mY;
 		else
 			mY = 0;
-
-		counter = 0;
+	}
+	else
+	{
+		if (mY + 1 != 0)
+			--mY;
+		else
+			mY = 10;
 	}
 }
