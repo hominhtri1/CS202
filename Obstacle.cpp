@@ -58,3 +58,75 @@ void Obstacle::Move(bool move)
 			mY = 9;
 	}
 }
+vector<Obstacle*> Factory::portion(int x,int type)
+{
+	vector<Obstacle*> v;
+	if (type == 1)
+	{
+		
+		int po = rand() % 5; //random position
+		int di = rand() % 2; //random direction, get 0,1 value
+		if (di == 0) di = -1;
+		int amount = rand() % 3; //return random amount of obstacle
+		while (amount != 0)
+		{
+			Obstacle* t = new Car(x, po, di);
+			v.push_back(t);
+			po += 5;
+			amount--;
+		}
+		
+	}
+	if (type == 2)
+	{
+		
+		int po = rand() % 5;
+		int di = rand() % 2; //random direction, get 0,1 value
+		if (di == 0) di = -1;
+		int amount = rand() % 3; //return random amount of obstacle
+		while (amount != 0)
+		{
+			Obstacle* t = new Truck(x, po, di);
+			v.push_back(t);
+			po += 5;
+			amount--;
+		}
+
+		
+	}
+	if (type == 3)
+	{
+	
+		int po = rand() % 5;
+		int di = rand() % 2; //random direction, get 0,1 value
+		if (di == 0) di = -1;
+		int amount = rand() % 3; //return random amount of obstacle
+		while (amount != 0)
+		{
+			Obstacle* t = new Dino(x, po, di);
+			v.push_back(t);
+			po += 5;
+			amount--;
+		}
+
+		
+	}
+	if (type == 1)
+	{
+		
+		int po = rand() % 5;
+		int di = rand() % 2; //random direction, get 0,1 value
+		if (di == 0) di = -1;
+		int amount = rand() % 3; //return random amount of obstacle
+		while (amount != 0)
+		{
+			Obstacle* t = new Bird(x, po, di);
+			v.push_back(t);
+			po += 5;
+			amount--;
+		}
+
+		
+	}
+	return v;
+}
