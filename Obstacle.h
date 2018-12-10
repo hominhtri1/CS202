@@ -26,19 +26,35 @@ public:
 };
 
 class Truck : public Obstacle {
-
+public:
+	Truck(int x, int y, int z) : Obstacle(x, y, z)
+	{
+	};
 };
 
 class Car : public Obstacle {
-
+public:
+	Car(int x, int y, int z) : Obstacle(x, y, z)
+	{
+	};
 };
 
 class Dino : public Obstacle {
-
+public:
+	Dino(int x, int y, int z) : Obstacle(x, y, z)
+{
+};
 };
 
 class Bird : public Obstacle {
-
+public:
+	Bird(int x, int y, int z) : Obstacle(x, y, z)
+{
+};
 };
 
+class Factory
+{
+public:	vector<Obstacle*> portion(int x, int type); //create line of obstacle
+};
 #endif
