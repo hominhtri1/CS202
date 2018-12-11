@@ -8,54 +8,20 @@ class Obstacle {
 private:
 	int mX, mY;
 	int counter;
-	int direction =1; //UPDATE
-
 
 public:
-	Obstacle(int x, int y, int z); //UPDATE
+	Obstacle(int x, int y);
 	Obstacle(ifstream& fin);
 
 	int getMX();
 	int getMY();
 
-	void inc(); //counter
+	void inc();
 
 	bool isTime();
 
-	void Move(bool move); //UPDATE
+	void Move(bool move);
 
 };
 
-class Truck : public Obstacle {
-public:
-	Truck(int x, int y, int z) : Obstacle(x, y, z)
-	{
-	};
-};
-
-class Car : public Obstacle {
-public:
-	Car(int x, int y, int z) : Obstacle(x, y, z)
-	{
-	};
-};
-
-class Dino : public Obstacle {
-public:
-	Dino(int x, int y, int z) : Obstacle(x, y, z)
-{
-};
-};
-
-class Bird : public Obstacle {
-public:
-	Bird(int x, int y, int z) : Obstacle(x, y, z)
-{
-};
-};
-
-class Factory
-{
-public:	vector<Obstacle*> portion(int x, int type); //create line of obstacle
-};
 #endif
