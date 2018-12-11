@@ -19,14 +19,14 @@ int Human::getY()
 
 void Human::up()
 {
-	if (checkFrame(x - 1, y))
-		--x;
+	if (checkFrame(x - 5, y))
+		x -= 5;
 }
 
 void Human::down()
 {
-	if (checkFrame(x + 1, y))
-		++x;
+	if (checkFrame(x + 5, y))
+		x += 5;
 }
 
 void Human::left()
@@ -43,7 +43,7 @@ void Human::right()
 
 bool Human::checkFrame(int a, int b)
 {
-	return ((0 <= a && a < 10) && (0 <= b && b < 10));
+	return ((0 <= a && a < 35) && (25 <= b && b < 135));
 }
 
 bool Human::atFinish()
@@ -53,7 +53,13 @@ bool Human::atFinish()
 
 bool Human::collide(Obstacle* ve)
 {
-	if (x == ve->getMX() && y == ve->getMY())
+	int tempX = ve->getMX();
+	int tempY = ve->getMY();
+
+	int sizeO = 13;
+	int sizeH = 3;
+
+	if (x == tempX && !((y + sizeH <= tempY) || (tempY + sizeO <= y)))
 	{
 		dead = true;
 		return true;

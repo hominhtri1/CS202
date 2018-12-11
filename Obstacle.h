@@ -7,20 +7,23 @@ class Obstacle {
 
 private:
 	int mX, mY;
-	int counter;
+	int moveCounter;
+	int lightCounter;
+	int lowerLight, upperLight;
 
 public:
-	Obstacle(int x, int y);
-	Obstacle(ifstream& fin);
+	Obstacle(int x, int y, int lowerLight, int upperLight);
 
 	int getMX();
 	int getMY();
+	int getLower();
+	int getUpper();
 
 	void inc();
 
 	bool isTime();
 
-	void Move(bool move);
+	void Move();
 
 };
 

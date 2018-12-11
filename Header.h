@@ -9,7 +9,13 @@
 #include <time.h>
 #include <string>
 #include <fstream>
+#include <algorithm>
+#include <random>
 
 using namespace std;
+
+void gotoXY(int x, int y);
+
+void showConsoleCursor(bool showFlag);
 
 #endif

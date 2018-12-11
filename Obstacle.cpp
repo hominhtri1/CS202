@@ -1,17 +1,15 @@
 #include "Obstacle.h"
 
-Obstacle::Obstacle(int x, int y)
+Obstacle::Obstacle(int x, int y, int lowerLight, int upperLight)
 {
 	mX = x;
 	mY = y;
 
-	counter = 0;
-}
+	moveCounter = 0;
+	lightCounter = 0;
 
-Obstacle::Obstacle(ifstream& fin)
-{
-	fin >> mX >> mY;
-	counter = 0;
+	this->lowerLight = lowerLight;
+	this->upperLight = upperLight;
 }
 
 int Obstacle::getMX()
@@ -24,25 +22,50 @@ int Obstacle::getMY()
 	return mY;
 }
 
+int Obstacle::getLower()
+{
+	return lowerLight;
+}
+
+int Obstacle::getUpper()
+{
+	return upperLight;
+}
+
 void Obstacle::inc()
 {
-	if (counter < 15)
-		++counter;
+	if (moveCounter < 5)
+		++moveCounter;
 	else
-		counter = 0;
+		moveCounter = 0;
 }
 
 bool Obstacle::isTime()
 {
-	return (counter == 0);
+	return (moveCounter == 0);
 }
 
-void Obstacle::Move(bool move)
+void Obstacle::Move()
 {
-	if (!move)
+	++lightCounter;
+
+	if (lightCounter == 1)
+	{
+		gotoXY(159, mX);
+		cout << "G";
+	}
+	else if (lightCounter == lowerLight)
+	{
+		gotoXY(159, mX);
+		cout << "R";
+	}
+
+	if (lightCounter == upperLight)
+		lightCounter = 0;
+	else if (lightCounter > lowerLight)
 		return;
 
-	if (mY + 1 != 10)
+	if (mY + 1 != 145)
 		++mY;
 	else
 		mY = 0;

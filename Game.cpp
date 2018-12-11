@@ -5,7 +5,6 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 {
 	gP->drawFull();
 
-	int lightCounter = 0;
 	int fogCounter = 0;
 
 	bool move = true;
@@ -17,16 +16,6 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 		// If pause is true, loops until pause is false
 		while (*IS_PAUSE_P);
 
-		if (lightCounter < 450)
-			++lightCounter;
-		else
-			lightCounter = 0;
-
-		if (lightCounter < 350)
-			move = true;
-		else
-			move = false;
-
 		if (fogCounter < 350)
 			++fogCounter;
 		else
@@ -37,10 +26,9 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 		else
 			fog = false;
 
-		gP->updateObstacle(move, fog);
+		gP->updateObstacle(fog);
 
-		gP->eraseHuman();
-		gP->drawUpdateHuman();
+		gP->updateHuman();
 
 		// Need to constantly check for collision so collision checking is handled by
 		// background thread
@@ -54,6 +42,10 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 	if (gP->isHumanDead())
 	{
 		gP->drawFull();
+
+		gP->drawBomb();
+		gotoXY(0, 36);
+
 		cout << "y to continue, n to end" << endl;
 	}
 }
@@ -67,13 +59,102 @@ void startLevel(int level)
 
 void startGame()
 {
-	startLevel(0);
+	showConsoleCursor(false);
+
+	int choose = 11;
+	int normal = 10;
+
+	string menu[] = { "1. New game", "2. Load game", "3. Settings", "4. Exit" };
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+	for (int i = 0; i < 4; ++i)
+		cout << menu[i] << endl;
+
+	int line = 0;
+
+	bool stop = false;
+
+	while (!stop)
+	{
+		gotoXY(0, line);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
+		cout << menu[line];
+
+		int input = toupper(_getch());
+
+		if (input == 69)
+		{
+			switch (line)
+			{
+			case 0:
+			{
+				startLevel(0);
+
+				system("cls");
+
+				gotoXY(0, 0);
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+				for (int i = 0; i < 4; ++i)
+					cout << menu[i] << endl;
+
+				break;
+			}
+			case 1:
+			{
+				system("cls");
+
+				string path;
+				cout << "Enter path:" << endl;
+				getline(cin, path);
+
+				Game g;
+				g.loadGameFile(path);
+
+				system("cls");
+
+				gotoXY(0, 0);
+				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+				for (int i = 0; i < 4; ++i)
+					cout << menu[i] << endl;
+
+				break;
+			}
+			case 2:
+			case 3:
+				stop = true;
+			}
+		}
+
+		gotoXY(0, line);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+		cout << menu[line];
+
+		if (input == 87)
+		{
+			if (line - 1 != -1)
+				--line;
+			else
+				line = 3;
+		}
+		else if (input == 83)
+		{
+			if (line + 1 != 4)
+				++line;
+			else
+				line = 0;
+		}
+	}
 }
 
 
 
+Game::Game()
+	: hu(0, 0)
+{
+}
+
 Game::Game(int level)
-	: hu(9, 0)
+	: hu(30, 75)
 {
 	oldX = hu.getX();
 	oldY = hu.getY();
@@ -82,13 +163,24 @@ Game::Game(int level)
 
 	srand(time(NULL));
 
-	for (int i = 0; i <= level; ++i)
+	for (int i = 0; i <= level; i += 1)
 	{
-		Obstacle* tempOb;
-		tempOb = new Obstacle(i + 1, rand() % 5);
-		ve.push_back(tempOb);
-		tempOb = new Obstacle(i + 1, rand() % 5 + 5);
-		ve.push_back(tempOb);
+		random_device rd;
+		mt19937 g(rd());
+
+		vector<int> arr = { 0, 1, 2, 3, 4, 5 };
+		shuffle(arr.begin(), arr.end(), g);
+
+		int shift = rand() % 15;
+
+		int lower = 20 + 5 * i;
+		int upper = lower + 30 - 6 * i;
+
+		for (int j = 0; j < 4; ++j)
+		{
+			Obstacle* tempOb = new Obstacle((i + 1) * 5, arr[j] * 25 + shift, lower, upper);
+			ve.push_back(tempOb);
+		}
 	}
 }
 
@@ -107,14 +199,6 @@ void Game::run()
 	// Separate from IS_RUNNING because different flow control is needed
 	bool IS_PAUSE = false;
 
-	// To handle the unwanted effect where if the user hold a move button toward an obstacle then the game will jump out
-	// It is better when the game stop at a screen, notifying the user that they have lost
-	// When the user collides with an obstacle, IS_END is set to true to avoid the _getch loop joining the background
-	// thread multiple times
-	bool IS_END = false;
-
-	showConsoleCursor(false);
-
 	// Background thread handling pausing, drawing, updating obstacle positions,
 	// and checking for collisions
 	thread bgThread(backgroundThread, this, &IS_RUNNING, &IS_PAUSE);
@@ -124,38 +208,56 @@ void Game::run()
 	{
 		int input = toupper(_getch());
 
-		// If already paused, unpause when input = "p"
-		if (IS_PAUSE)
-		{
-			if (input == 80)
-				IS_PAUSE = false;
-
-			continue;
-		}
-
 		// If dead, end game. Except when input = "y", then game is reset
 		if (hu.isDead())
 		{
-			// exitGame is only called once
-			if (!IS_END)
-			{
-				exitGame(&bgThread, &IS_RUNNING);
-				cout << "y to continue, n to end" << endl;
-				IS_END = true;
-			}
+			exitGame(&bgThread, &IS_RUNNING);
+
+			drawBomb();
+			gotoXY(0, 36);
+
+			// To handle the unwanted effect where if the user hold a move button toward an
+			// obstacle then the game will jump out
+			// It is better when the game stop at a screen, notifying the user that they have lost
+			// When the user collides with an obstacle, IS_END is set to true to avoid the _getch
+			// loop joining the background thread multiple times
+			cout << "y to continue, n to end" << endl;
+
+			int input2 = input;
 
 			// If input = "y", reset. If input = "n", end game. Otherwise, read input again
-			if (input == 89)
-				startLevel(level);
-			else if (input != 78)
-				continue;
+			while (true)
+			{
+				if (input2 == 89)
+					startLevel(level);
+				else if (input2 != 78)
+				{
+					input2 = toupper(_getch());
+					continue;
+				}
+
+				break;
+			}
 
 			break;
 		}
 
 		// Input = "p"
 		if (input == 80)
+		{
 			IS_PAUSE = true;
+
+			while (true)
+			{
+				int input2 = toupper(_getch());
+
+				if (input2 == 80)
+				{
+					IS_PAUSE = false;
+					break;
+				}
+			}
+		}
 
 		// Input = ESC
 		if (input == 27)
@@ -168,7 +270,21 @@ void Game::run()
 		{
 			exitGame(&bgThread, &IS_RUNNING);
 
-			saveGame();
+			string path = saveGame();
+
+			cout << "y to continue, n to end" << endl;
+
+			while (true)
+			{
+				int input2 = toupper(_getch());
+
+				if (input2 == 89)
+					loadGameFile(path);
+				else if (input2 != 78)
+					continue;
+
+				break;
+			}
 
 			break;
 		}
@@ -191,10 +307,18 @@ void Game::run()
 			Sleep(100);
 			exitGame(&bgThread, &IS_RUNNING);
 
-			if (level < 7)
+			if (level < 4)
+			{
+				cout << "On to level " << (level + 1) << endl;
+				_getch();
 				startLevel(level + 1);
+			}
 			else
+			{
+				cout << "You have won. Back to level 0" << endl;
+				_getch();
 				startLevel(0);
+			}
 
 			break;
 		}
@@ -203,76 +327,59 @@ void Game::run()
 	}
 }
 
-void Game::eraseHuman()
+void Game::updateHuman()
 {
-	gotoXY(oldY, oldX);
-	cout << "_";
-}
+	int newX = hu.getX();
+	int newY = hu.getY();
 
-void Game::eraseObstacle()
-{
-	for (int i = 0; i < ve.size(); ++i)
+	string textureH[] = { "   ",
+		" o ",
+		"/|\\",
+		"/ \\" };
+
+	for (int i = 0; i < 4; ++i)
 	{
-		gotoXY(ve[i]->getMY(), ve[i]->getMX());
-		cout << "_";
+		gotoXY(oldY, oldX + i);
+		cout << "   ";
+		gotoXY(newY, newX + i);
+		cout << textureH[i];
 	}
-}
 
-void Game::drawUpdateHuman()
-{
-	oldX = hu.getX();
-	oldY = hu.getY();
-
-	gotoXY(oldY, oldX);
-	cout << "Y";
-}
-
-void Game::drawUpdateObstacle(bool fog)
-{
-	for (int i = 0; i < ve.size(); ++i)
-	{
-		int tempX = ve[i]->getMX();
-		int tempY = ve[i]->getMY();
-
-		if (!fog || (abs(tempX - hu.getX()) + abs(tempY - hu.getY()) <= 5))
-		{
-			gotoXY(tempY, tempX);
-			cout << "O";
-		}
-	}
+	oldX = newX;
+	oldY = newY;
 }
 
 void Game::drawFull()
 {
-	char map[10][10];
-
-	for (int i = 0; i < 10; ++i)
-		for (int j = 0; j < 10; ++j)
-			map[i][j] = '_';
-
-	map[hu.getX()][hu.getY()] = 'Y';
-
-	for (int i = 0; i < ve.size(); ++i)
-		map[ve[i]->getMX()][ve[i]->getMY()] = 'O';
-
 	system("cls");
 
-	gotoXY(0, 0);
+	string textureH[] = { "   ",
+		" o ",
+		"/|\\",
+		"/ \\" };
 
-	for (int i = 0; i < 10; ++i)
+	for (int i = 0; i < 4; ++i)
 	{
-		for (int j = 0; j < 10; ++j)
-			cout << map[i][j];
-		cout << endl;
+		gotoXY(hu.getY(), hu.getX() + i);
+		cout << textureH[i];
 	}
-}
 
-void Game::gotoXY(int x, int y)
-{
-	COORD coord;
-	coord.X = x;
-	coord.Y = y;
-	SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), coord);
+	string textureV[] = { "  ______     ",
+		" /|_||_\\`.__ ",
+		"(   _    _ _\\",
+		"=`-(_)--(_)-'" };
+
+	for (int i = 0; i < ve.size(); ++i)
+		for (int j = 0; j < 4; ++j)
+		{
+			gotoXY(ve[i]->getMY(), ve[i]->getMX() + j);
+			cout << textureV[j];
+		}
+
+	gotoXY(140, 36);
+	cout << "Level " << level;
+
+	gotoXY(0, 36);
 }
 
 // Signals the background thread to stop
@@ -281,18 +388,10 @@ void Game::exitGame(thread* t, bool* IS_RUNNING_P)
 	// Set bool to false, the loop in the background thread will exit
 	*IS_RUNNING_P = false;
 
-	Sleep(50);
-
-	drawFull();
-
 	// After the background thread is finished, merge it back into the main thread
 	t->join();
-}
 
-void Game::moveObstacle(bool move)
-{
-	for (int i = 0; i < ve.size(); ++i)
-		ve[i]->Move(move);
+	drawFull();
 }
 
 bool Game::isHumanDead()
@@ -321,83 +420,141 @@ void Game::moveHuman(int input)
 		hu.right();
 }
 
-void Game::showConsoleCursor(bool showFlag)
-{
-	HANDLE out = GetStdHandle(STD_OUTPUT_HANDLE);
-
-	CONSOLE_CURSOR_INFO cursorInfo;
-
-	GetConsoleCursorInfo(out, &cursorInfo);
-	cursorInfo.bVisible = showFlag;
-	SetConsoleCursorInfo(out, &cursorInfo);
-}
-
-void Game::saveGame()
+string Game::saveGame()
 {
 	drawFull();
+
+	cout << "Saving" << endl;
 
 	string path;
 	cout << "Enter path:" << endl;
 	getline(cin, path);
 
 	ofstream fout;
-	fout.open(path);
+	fout.open(path, ios::binary);
 
-	fout << hu.getX() << " " << hu.getY() << endl;
-	fout << level << endl;
-	fout << ve.size() << endl;
+	int memblock[] = { hu.getX(), hu.getY() };
+	fout.write((char*)memblock, sizeof(int) * 2);
+
+	fout.write((char*)&level, sizeof(int));
+
+	int size = ve.size();
+	fout.write((char*)&size, sizeof(int));
+
+	ObstacleS* arr = new ObstacleS[size];
+
 	for (int i = 0; i < ve.size(); ++i)
-		fout << ve[i]->getMX() << " " << ve[i]->getMY() << endl;
+	{
+		arr[i].mX = ve[i]->getMX();
+		arr[i].mY = ve[i]->getMY();
+		arr[i].lowerLight = ve[i]->getLower();
+		arr[i].upperLight = ve[i]->getUpper();
+	}
+
+	fout.write((char*)arr, sizeof(ObstacleS) * size);
+
+	delete[] arr;
 
 	fout.close();
+
+	return path;
 }
 
 void Game::loadGame()
 {
 	drawFull();
 
+	cout << "Loading" << endl;
+
 	string path;
 	cout << "Enter path:" << endl;
 	getline(cin, path);
 
+	loadGameFile(path);
+}
+
+void Game::loadGameFile(string path)
+{
 	ifstream fin;
-	fin.open(path);
+	fin.open(path, ios::binary);
 
-	int tempX, tempY;
-	fin >> tempX >> tempY;
+	if (!fin.is_open())
+		return;
 
-	Game g(tempX, tempY);
+	int memblock[2];
+	fin.read((char*)memblock, sizeof(int) * 2);
 
-	fin >> g.level;
+	Game g(memblock[0], memblock[1]);
+
+	fin.read((char*)&(g.level), sizeof(int));
 
 	int size;
-	fin >> size;
+	fin.read((char*)&size, sizeof(int));
+
+	ObstacleS* arr = new ObstacleS[size];
+	fin.read((char*)arr, sizeof(ObstacleS) * size);
 
 	for (int i = 0; i < size; ++i)
 	{
-		Obstacle* tempOb = new Obstacle(fin);
+		Obstacle* tempOb = new Obstacle(arr[i].mX, arr[i].mY, arr[i].lowerLight, arr[i].upperLight);
 		g.ve.push_back(tempOb);
 	}
+
+	delete[] arr;
 
 	fin.close();
 
 	g.run();
 }
 
-void Game::updateObstacle(bool move, bool fog)
+void Game::updateObstacle(bool fog)
 {
 	ve[0]->inc();
 
 	if (!ve[0]->isTime())
 		return;
 
-	eraseObstacle();
+	// eraseObstacle();
 
-	// Update obstacle positions
-	moveObstacle(move);
+	string texture[] = { "  ______     ",
+		" /|_||_\\`.__ ",
+		"(   _    _ _\\",
+		"=`-(_)--(_)-'" };
 
-	// Draw the map
-	drawUpdateObstacle(fog);
+	string empty = "             ";
+
+	for (int i = 0; i < ve.size(); ++i)
+	{
+		int oldX = ve[i]->getMX();
+		int oldY = ve[i]->getMY();
+
+		ve[i]->Move();
+
+		int newX = ve[i]->getMX();
+		int newY = ve[i]->getMY();
+
+		for (int j = 0; j < 4; ++j)
+		{
+			gotoXY(oldY, oldX + j);
+			cout << empty;
+			gotoXY(newY, newX + j);
+			cout << texture[j];
+		}
+	}
+}
+
+void Game::drawBomb()
+{
+	string bomb[] = { ".---.",
+		"(\\|/)",
+		"--0--",
+		"(/|\\)" };
+
+	for (int i = 0; i < 4; ++i)
+	{
+		gotoXY(hu.getY(), hu.getX() + i);
+		cout << bomb[i];
+	}
 }
 
 Game::~Game()

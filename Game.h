@@ -15,38 +15,31 @@ private:
 	vector<Obstacle*> ve;
 
 public:
+	Game();
 	Game(int level);
 	Game(int x, int y);
 
 	void run();
 
-	void eraseHuman();
-
-	void eraseObstacle();
-
-	void drawUpdateHuman();
-
-	void drawUpdateObstacle(bool fog);
+	void updateHuman();
 
 	void drawFull();
 
-	void gotoXY(int x, int y);
-
 	void exitGame(thread* t, bool* IS_RUNNING_P);
-
-	void moveObstacle(bool move);
 
 	bool isHumanDead();
 
 	void moveHuman(int input);
 
-	void showConsoleCursor(bool showFlag);
-
-	void saveGame();
+	string saveGame();
 
 	void loadGame();
 
-	void updateObstacle(bool move, bool fog);
+	void loadGameFile(string path);
+
+	void updateObstacle(bool fog);
+
+	void drawBomb();
 
 	~Game();
 
@@ -57,5 +50,11 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P);
 void startLevel(int level);
 
 void startGame();
+
+struct ObstacleS
+{
+	int mX, mY;
+	int lowerLight, upperLight;
+};
 
 #endif
