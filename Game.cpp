@@ -84,11 +84,10 @@ Game::Game(int level)
 
 	for (int i = 0; i <= level; ++i)
 	{
-		Obstacle* tempOb;
-		tempOb = new Obstacle(i + 1, rand() % 5);
-		ve.push_back(tempOb);
-		tempOb = new Obstacle(i + 1, rand() % 5 + 5);
-		ve.push_back(tempOb);
+		int t = rand() % 4;
+		if (t == 0) t = 4;
+		vector<Obstacle*> line = dars.portion(i + 1, t);
+		ve.push_back(line);
 	}
 }
 
@@ -213,8 +212,11 @@ void Game::eraseObstacle()
 {
 	for (int i = 0; i < ve.size(); ++i)
 	{
-		gotoXY(ve[i]->getMY(), ve[i]->getMX());
-		cout << "_";
+		for (int j = 0; j < ve[i].size(); ++j)
+		{
+			gotoXY(ve[i][j]->getMY(), ve[i][j]->getMX());
+			cout << "_";
+		}
 	}
 }
 
@@ -231,8 +233,11 @@ void Game::drawUpdateObstacle(bool fog)
 {
 	for (int i = 0; i < ve.size(); ++i)
 	{
-		int tempX = ve[i]->getMX();
-		int tempY = ve[i]->getMY();
+	for (int j = 0; j < ve[i].size(); ++j)
+	{
+		
+		int tempX = ve[i][j]->getMX();
+		int tempY = ve[i][j]->getMY();
 
 		if (!fog || (abs(tempX - hu.getX()) + abs(tempY - hu.getY()) <= 5))
 		{
@@ -240,6 +245,7 @@ void Game::drawUpdateObstacle(bool fog)
 			cout << "O";
 		}
 	}
+}
 }
 
 void Game::drawFull()
@@ -251,10 +257,13 @@ void Game::drawFull()
 			map[i][j] = '_';
 
 	map[hu.getX()][hu.getY()] = 'Y';
-
 	for (int i = 0; i < ve.size(); ++i)
-		map[ve[i]->getMX()][ve[i]->getMY()] = 'O';
-
+	{
+		for (int j = 0; j < ve[i].size(); ++j)
+		{
+			map[ve[i][j]->getMX()][ve[i][j]->getMY()] = 'O';
+		}
+	}
 	system("cls");
 
 	gotoXY(0, 0);
@@ -262,7 +271,9 @@ void Game::drawFull()
 	for (int i = 0; i < 10; ++i)
 	{
 		for (int j = 0; j < 10; ++j)
+		{
 			cout << map[i][j];
+		}
 		cout << endl;
 	}
 }
@@ -292,20 +303,26 @@ void Game::exitGame(thread* t, bool* IS_RUNNING_P)
 void Game::moveObstacle(bool move)
 {
 	for (int i = 0; i < ve.size(); ++i)
-		ve[i]->Move(move);
+	{
+		for (int j = 0; j < ve[i].size(); ++j)
+		{
+			ve[i][j]->Move(move);
+		}
+	}
 }
 
 bool Game::isHumanDead()
 {
 	if (hu.isDead())
 		return true;
-
 	for (int i = 0; i < ve.size(); ++i)
 	{
-		if (hu.collide(ve[i]))
+	for (int j = 0; j < ve[i].size(); ++j)
+	{
+		if (hu.collide(ve[i][j]))
 			break;
 	}
-
+}
 	return hu.isDead();
 }
 
@@ -347,7 +364,13 @@ void Game::saveGame()
 	fout << level << endl;
 	fout << ve.size() << endl;
 	for (int i = 0; i < ve.size(); ++i)
-		fout << ve[i]->getMX() << " " << ve[i]->getMY() << endl;
+	{
+
+		for (int j = 0; j < ve[i].size(); ++j)
+		{
+			fout << ve[i][j]->getMX() << " " << ve[i][j]->getMY() << endl;
+		}
+	}
 
 	fout.close();
 }
@@ -376,7 +399,7 @@ void Game::loadGame()
 	for (int i = 0; i < size; ++i)
 	{
 		Obstacle* tempOb = new Obstacle(fin);
-		g.ve.push_back(tempOb);
+		g.ve[i].push_back(tempOb);
 	}
 
 	fin.close();
@@ -386,9 +409,9 @@ void Game::loadGame()
 
 void Game::updateObstacle(bool move, bool fog)
 {
-	ve[0]->inc();
+	ve[0][0]->inc();
 
-	if (!ve[0]->isTime())
+	if (!ve[0][0]->isTime())
 		return;
 
 	eraseObstacle();
@@ -403,5 +426,10 @@ void Game::updateObstacle(bool move, bool fog)
 Game::~Game()
 {
 	for (int i = 0; i < ve.size(); ++i)
-		delete ve[i];
+	{
+		for (int j = 0; j < ve[i].size(); ++j)
+		{
+			delete ve[i][j];
+		}
+	}
 }
