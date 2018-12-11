@@ -4,7 +4,6 @@ Obstacle::Obstacle(int x, int y, int z)
 {
 	mX = x;
 	mY = y;
-	direction = 1;
 	if (z==1||z==-1)
 	direction = z;
 	counter = 0;
@@ -67,7 +66,8 @@ vector<Obstacle*> Factory::portion(int x,int type)
 		int po = rand() % 5; //random position
 		int di = rand() % 2; //random direction, get 0,1 value
 		if (di == 0) di = -1;
-		int amount = rand() % 3; //return random amount of obstacle
+		int amount = rand() % 2; //return random amount of obstacle
+		if (amount == 0) amount = 2;
 		while (amount != 0)
 		{
 			Obstacle* t = new Car(x, po, di);
@@ -83,7 +83,8 @@ vector<Obstacle*> Factory::portion(int x,int type)
 		int po = rand() % 5;
 		int di = rand() % 2; //random direction, get 0,1 value
 		if (di == 0) di = -1;
-		int amount = rand() % 3; //return random amount of obstacle
+		int amount = rand() % 2; //return random amount of obstacle
+		if (amount == 0) amount = 2;
 		while (amount != 0)
 		{
 			Obstacle* t = new Truck(x, po, di);
@@ -100,7 +101,8 @@ vector<Obstacle*> Factory::portion(int x,int type)
 		int po = rand() % 5;
 		int di = rand() % 2; //random direction, get 0,1 value
 		if (di == 0) di = -1;
-		int amount = rand() % 3; //return random amount of obstacle
+		int amount = rand() % 2; //return random amount of obstacle
+		if (amount == 0) amount = 2;
 		while (amount != 0)
 		{
 			Obstacle* t = new Dino(x, po, di);
@@ -111,13 +113,14 @@ vector<Obstacle*> Factory::portion(int x,int type)
 
 		
 	}
-	if (type == 1)
+	if (type == 4)
 	{
 		
 		int po = rand() % 5;
 		int di = rand() % 2; //random direction, get 0,1 value
 		if (di == 0) di = -1;
-		int amount = rand() % 3; //return random amount of obstacle
+		int amount = rand() % 2; //return random amount of obstacle
+		if (amount == 0) amount = 2;
 		while (amount != 0)
 		{
 			Obstacle* t = new Bird(x, po, di);
