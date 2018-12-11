@@ -12,8 +12,8 @@ private:
 	Human hu;
 	int oldX, oldY;
 	int level;
-	vector<Obstacle*> ve;
-
+	vector<vector<Obstacle*>> ve;
+	Factory dars;
 public:
 	Game(int level);
 	Game(int x, int y);
