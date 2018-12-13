@@ -11,13 +11,14 @@ class Game
 private:
 	Human hu;
 	int oldX, oldY;
-	int level;
+	int* levelP;
 	vector<Obstacle*> ve;
+	bool* soundOnP;
 
 public:
-	Game();
-	Game(int level);
-	Game(int x, int y);
+	Game(int* levelP, bool* soundOnP, int dummy);
+	Game(int* levelP, bool* soundOnP);
+	Game(int x, int y, int* levelP, bool* soundOnP);
 
 	void run();
 
@@ -41,19 +42,27 @@ public:
 
 	void drawBomb();
 
+	Obstacle* factory(int type, int x, int y, int direction, int lowerLight, int upperLight);
+
 	~Game();
 
 };
 
-void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P);
+void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P, bool* soundOnP);
 
-void startLevel(int level);
+void soundThread(bool* SOUND_P, bool* soundOnP);
+
+void startLevel(int* levelP, bool* soundOnP);
 
 void startGame();
 
+void settingsMenu(bool* soundOnP, int* levelP);
+
 struct ObstacleS
 {
+	int type;
 	int mX, mY;
+	int direction;
 	int lowerLight, upperLight;
 };
 

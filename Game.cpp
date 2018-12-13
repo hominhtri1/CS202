@@ -1,9 +1,13 @@
 #include "Game.h"
 
 // Handles most background tasks
-void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
+void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P, bool* soundOnP)
 {
 	gP->drawFull();
+
+	bool SOUND = true;
+
+	thread sThread(soundThread, &SOUND, soundOnP);
 
 	int fogCounter = 0;
 
@@ -37,6 +41,10 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 		Sleep(10);
 	}
 
+	SOUND = false;
+
+	sThread.join();
+
 	// When there is collision, above loop will exit and the below line is printed
 	// Depending on input, new game is started or program exits
 	if (gP->isHumanDead())
@@ -46,14 +54,43 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P)
 		gP->drawBomb();
 		gotoXY(0, 36);
 
+		if (*soundOnP)
+			PlaySound(TEXT("sound/Bomb.wav"), NULL, SND_FILENAME);
+
 		cout << "y to continue, n to end" << endl;
 	}
 }
 
-void startLevel(int level)
+void soundThread(bool* SOUND_P, bool* soundOnP)
+{
+	while (true)
+	{
+		if (!*SOUND_P)
+			break;
+
+		if (!*soundOnP)
+			continue;
+
+		PlaySound(TEXT("sound/car.wav"), NULL, SND_FILENAME);
+
+		if (!*SOUND_P)
+			break;
+		PlaySound(TEXT("sound/dinosaur.wav"), NULL, SND_FILENAME);
+
+		if (!*SOUND_P)
+			break;
+		PlaySound(TEXT("sound/truck.wav"), NULL, SND_FILENAME);
+
+		if (!*SOUND_P)
+			break;
+		PlaySound(TEXT("sound/bird.wav"), NULL, SND_FILENAME);
+	}
+}
+
+void startLevel(int* levelP, bool* soundOnP)
 {
 	system("cls");
-	Game g(level);
+	Game g(levelP, soundOnP);
 	g.run();
 }
 
@@ -63,12 +100,19 @@ void startGame()
 
 	int choose = 11;
 	int normal = 10;
+	int contColor = 8;
 
-	string menu[] = { "1. New game", "2. Load game", "3. Settings", "4. Exit" };
+	string menu[] = { "1. New game", "2. Continue game", "3. Load game", "4. Settings", "5. Exit" };
+	int len = 5;
 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < len; ++i)
 		cout << menu[i] << endl;
+
+	bool soundOn = true;
+	int level = 0;
+
+	bool cont = false;
 
 	int line = 0;
 
@@ -76,6 +120,13 @@ void startGame()
 
 	while (!stop)
 	{
+		if (!cont)
+		{
+			gotoXY(0, 1);
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), contColor);
+			cout << menu[1];
+		}
+
 		gotoXY(0, line);
 		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
 		cout << menu[line];
@@ -88,18 +139,27 @@ void startGame()
 			{
 			case 0:
 			{
-				startLevel(0);
+				level = 0;
+				startLevel(&level, &soundOn);
 
-				system("cls");
-
-				gotoXY(0, 0);
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
-				for (int i = 0; i < 4; ++i)
-					cout << menu[i] << endl;
+				cont = true;
 
 				break;
 			}
 			case 1:
+			{
+				if (!cont)
+				{
+					system("cls");
+					cout << "You haven't played the game yet" << endl;
+					_getch();
+				}
+				else
+					startLevel(&level, &soundOn);
+
+				break;
+			}
+			case 2:
 			{
 				system("cls");
 
@@ -107,20 +167,107 @@ void startGame()
 				cout << "Enter path:" << endl;
 				getline(cin, path);
 
-				Game g;
+				Game g(&level, &soundOn, 0);
 				g.loadGameFile(path);
 
-				system("cls");
+				cont = true;
 
-				gotoXY(0, 0);
-				SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
-				for (int i = 0; i < 4; ++i)
-					cout << menu[i] << endl;
+				break;
+			}
+			case 3:
+			{
+				settingsMenu(&soundOn, &level);
+
+				break;
+			}
+			case 4:
+				stop = true;
+			}
+
+			system("cls");
+
+			gotoXY(0, 0);
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+			for (int i = 0; i < len; ++i)
+				cout << menu[i] << endl;
+		}
+
+		gotoXY(0, line);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+		cout << menu[line];
+
+		if (input == 87)
+		{
+			if (line - 1 != -1)
+				--line;
+			else
+				line = len - 1;
+		}
+		else if (input == 83)
+		{
+			if (line + 1 != len)
+				++line;
+			else
+				line = 0;
+		}
+	}
+}
+
+void settingsMenu(bool* soundOnP, int* levelP)
+{
+	int choose = 11;
+	int normal = 10;
+	int soundColor = 7;
+
+	string menu[] = { "1. Sound: ", "2. Level: ", "3. Return" };
+	int len = 3;
+
+	system("cls");
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
+	for (int i = 0; i < len; ++i)
+		cout << menu[i] << endl;
+
+	int line = 0;
+
+	bool stop = false;
+
+	while (!stop)
+	{
+		gotoXY(0, line);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
+		cout << menu[line];
+
+		gotoXY(10, 0);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), soundColor);
+		cout << char((*soundOnP) ? 'Y' : 'N');
+
+		gotoXY(10, 1);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), soundColor);
+		cout << *levelP;
+
+		int input = toupper(_getch());
+
+		if (input == 69)
+		{
+			switch (line)
+			{
+			case 0:
+			{
+				*soundOnP = !*soundOnP;
+
+				break;
+			}
+			case 1:
+			{
+				if (*levelP < 4)
+					++*levelP;
+				else
+					*levelP = 0;
 
 				break;
 			}
 			case 2:
-			case 3:
 				stop = true;
 			}
 		}
@@ -134,11 +281,11 @@ void startGame()
 			if (line - 1 != -1)
 				--line;
 			else
-				line = 3;
+				line = len - 1;
 		}
 		else if (input == 83)
 		{
-			if (line + 1 != 4)
+			if (line + 1 != len)
 				++line;
 			else
 				line = 0;
@@ -148,27 +295,31 @@ void startGame()
 
 
 
-Game::Game()
+Game::Game(int* levelP, bool* soundOnP, int dummy)
 	: hu(0, 0)
 {
+	this->levelP = levelP;
+	this->soundOnP = soundOnP;
 }
 
-Game::Game(int level)
-	: hu(30, 75)
+Game::Game(int* levelP, bool* soundOnP)
+	: hu(36, 75)
 {
+	this->soundOnP = soundOnP;
+
 	oldX = hu.getX();
 	oldY = hu.getY();
 
-	this->level = level;
+	this->levelP = levelP;
 
 	srand(time(NULL));
 
-	for (int i = 0; i <= level; i += 1)
+	for (int i = 0; i <= *levelP; i += 1)
 	{
 		random_device rd;
 		mt19937 g(rd());
 
-		vector<int> arr = { 0, 1, 2, 3, 4, 5 };
+		vector<int> arr = { 0, 1, 2, 3, 4 };
 		shuffle(arr.begin(), arr.end(), g);
 
 		int shift = rand() % 15;
@@ -176,17 +327,21 @@ Game::Game(int level)
 		int lower = 20 + 5 * i;
 		int upper = lower + 30 - 6 * i;
 
-		for (int j = 0; j < 4; ++j)
+		int type = rand() % 4;
+
+		for (int j = 0; j < 2; ++j)
 		{
-			Obstacle* tempOb = new Obstacle((i + 1) * 5, arr[j] * 25 + shift, lower, upper);
+			Obstacle* tempOb = factory(type, (i + 1) * 6, arr[j] * 27 + shift, i % 2, lower, upper);
 			ve.push_back(tempOb);
 		}
 	}
 }
 
-Game::Game(int x, int y)
+Game::Game(int x, int y, int* levelP, bool* soundOnP)
 	: hu(x, y)
 {
+	this->levelP = levelP;
+	this->soundOnP = soundOnP;
 }
 
 // Handles most of the control flow
@@ -201,7 +356,7 @@ void Game::run()
 
 	// Background thread handling pausing, drawing, updating obstacle positions,
 	// and checking for collisions
-	thread bgThread(backgroundThread, this, &IS_RUNNING, &IS_PAUSE);
+	thread bgThread(backgroundThread, this, &IS_RUNNING, &IS_PAUSE, soundOnP);
 
 	// Input loop, stop when human is dead, ESC is pressed, or when human is at finish line
 	while (true)
@@ -229,7 +384,7 @@ void Game::run()
 			while (true)
 			{
 				if (input2 == 89)
-					startLevel(level);
+					startLevel(levelP, soundOnP);
 				else if (input2 != 78)
 				{
 					input2 = toupper(_getch());
@@ -307,18 +462,19 @@ void Game::run()
 			Sleep(100);
 			exitGame(&bgThread, &IS_RUNNING);
 
-			if (level < 4)
+			if (*levelP < 4)
 			{
-				cout << "On to level " << (level + 1) << endl;
-				_getch();
-				startLevel(level + 1);
+				++(*levelP);
+				cout << "On to level " << (*levelP) << endl;
 			}
 			else
 			{
+				*levelP = 0;
 				cout << "You have won. Back to level 0" << endl;
-				_getch();
-				startLevel(0);
 			}
+
+			_getch();
+			startLevel(levelP, soundOnP);
 
 			break;
 		}
@@ -333,11 +489,12 @@ void Game::updateHuman()
 	int newY = hu.getY();
 
 	string textureH[] = { "   ",
+		"   ",
 		" o ",
 		"/|\\",
 		"/ \\" };
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		gotoXY(oldY, oldX + i);
 		cout << "   ";
@@ -354,30 +511,26 @@ void Game::drawFull()
 	system("cls");
 
 	string textureH[] = { "   ",
+		"   ",
 		" o ",
 		"/|\\",
 		"/ \\" };
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		gotoXY(hu.getY(), hu.getX() + i);
 		cout << textureH[i];
 	}
 
-	string textureV[] = { "  ______     ",
-		" /|_||_\\`.__ ",
-		"(   _    _ _\\",
-		"=`-(_)--(_)-'" };
-
 	for (int i = 0; i < ve.size(); ++i)
-		for (int j = 0; j < 4; ++j)
+		for (int j = 0; j < 5; ++j)
 		{
 			gotoXY(ve[i]->getMY(), ve[i]->getMX() + j);
-			cout << textureV[j];
+			cout << ve[i]->texture[j];
 		}
 
 	gotoXY(140, 36);
-	cout << "Level " << level;
+	cout << "Level " << *levelP;
 
 	gotoXY(0, 36);
 }
@@ -436,7 +589,7 @@ string Game::saveGame()
 	int memblock[] = { hu.getX(), hu.getY() };
 	fout.write((char*)memblock, sizeof(int) * 2);
 
-	fout.write((char*)&level, sizeof(int));
+	fout.write((char*)levelP, sizeof(int));
 
 	int size = ve.size();
 	fout.write((char*)&size, sizeof(int));
@@ -445,8 +598,10 @@ string Game::saveGame()
 
 	for (int i = 0; i < ve.size(); ++i)
 	{
+		arr[i].type = ve[i]->type();
 		arr[i].mX = ve[i]->getMX();
 		arr[i].mY = ve[i]->getMY();
+		arr[i].direction = ve[i]->getDirection();
 		arr[i].lowerLight = ve[i]->getLower();
 		arr[i].upperLight = ve[i]->getUpper();
 	}
@@ -484,9 +639,9 @@ void Game::loadGameFile(string path)
 	int memblock[2];
 	fin.read((char*)memblock, sizeof(int) * 2);
 
-	Game g(memblock[0], memblock[1]);
+	Game g(memblock[0], memblock[1], levelP, soundOnP);
 
-	fin.read((char*)&(g.level), sizeof(int));
+	fin.read((char*)g.levelP, sizeof(int));
 
 	int size;
 	fin.read((char*)&size, sizeof(int));
@@ -496,7 +651,8 @@ void Game::loadGameFile(string path)
 
 	for (int i = 0; i < size; ++i)
 	{
-		Obstacle* tempOb = new Obstacle(arr[i].mX, arr[i].mY, arr[i].lowerLight, arr[i].upperLight);
+		Obstacle* tempOb = factory(arr[i].type, arr[i].mX, arr[i].mY, arr[i].direction,
+			arr[i].lowerLight, arr[i].upperLight);
 		g.ve.push_back(tempOb);
 	}
 
@@ -516,13 +672,6 @@ void Game::updateObstacle(bool fog)
 
 	// eraseObstacle();
 
-	string texture[] = { "  ______     ",
-		" /|_||_\\`.__ ",
-		"(   _    _ _\\",
-		"=`-(_)--(_)-'" };
-
-	string empty = "             ";
-
 	for (int i = 0; i < ve.size(); ++i)
 	{
 		int oldX = ve[i]->getMX();
@@ -533,27 +682,47 @@ void Game::updateObstacle(bool fog)
 		int newX = ve[i]->getMX();
 		int newY = ve[i]->getMY();
 
-		for (int j = 0; j < 4; ++j)
+		for (int j = 0; j < 5; ++j)
 		{
 			gotoXY(oldY, oldX + j);
-			cout << empty;
+			cout << ve[i]->empty;
 			gotoXY(newY, newX + j);
-			cout << texture[j];
+			cout << ve[i]->texture[j];
 		}
 	}
 }
 
 void Game::drawBomb()
 {
-	string bomb[] = { ".---.",
+	string bomb[] = { "     ",
+		".---.",
 		"(\\|/)",
 		"--0--",
 		"(/|\\)" };
 
-	for (int i = 0; i < 4; ++i)
+	for (int i = 0; i < 5; ++i)
 	{
 		gotoXY(hu.getY(), hu.getX() + i);
 		cout << bomb[i];
+	}
+}
+
+Obstacle* Game::factory(int type, int x, int y, int direction, int lowerLight, int upperLight)
+{
+	switch (type)
+	{
+	case 0:
+		return new Car(x, y, direction, lowerLight, upperLight);
+		break;
+	case 1:
+		return new Truck(x, y, direction, lowerLight, upperLight);
+		break;
+	case 2:
+		return new Dinosaur(x, y, direction, lowerLight, upperLight);
+		break;
+	case 3:
+		return new Bird(x, y, direction, lowerLight, upperLight);
+		break;
 	}
 }
 

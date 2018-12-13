@@ -1,9 +1,11 @@
 #include "Obstacle.h"
 
-Obstacle::Obstacle(int x, int y, int lowerLight, int upperLight)
+Obstacle::Obstacle(int x, int y, int direction, int lowerLight, int upperLight)
 {
 	mX = x;
 	mY = y;
+
+	this->direction = (direction == 1) ? 1 : -1;
 
 	moveCounter = 0;
 	lightCounter = 0;
@@ -30,6 +32,11 @@ int Obstacle::getLower()
 int Obstacle::getUpper()
 {
 	return upperLight;
+}
+
+int Obstacle::getDirection()
+{
+	return direction;
 }
 
 void Obstacle::inc()
@@ -65,8 +72,97 @@ void Obstacle::Move()
 	else if (lightCounter > lowerLight)
 		return;
 
-	if (mY + 1 != 145)
-		++mY;
-	else
+	mY += direction;
+
+	if (mY == 135)
 		mY = 0;
+	else if (mY == -1)
+		mY = 134;
+}
+
+
+
+Car::Car(int x, int y, int direction, int lowerLight, int upperLight)
+	: Obstacle(x, y, direction, lowerLight, upperLight)
+{
+	string tmp[5] = { "             ",
+					  "  ______     ",
+					  " /|_||_\\`.__ ",
+					  "(   _    _ _\\",
+					  "=`-(_)--(_)-'" };
+	for (int i = 0; i < 5; ++i)
+		texture[i] = tmp[i];
+
+	empty = "             ";
+}
+
+int Car::type()
+{
+	return 0;
+}
+
+
+
+Truck::Truck(int x, int y, int direction, int lowerLight, int upperLight)
+	: Obstacle(x, y, direction, lowerLight, upperLight)
+{
+	string tmp[5] = { "                  ",
+					  "      ____        ",
+					  " ____//_]|________",
+					  "(o _ |  -|   _  o|",
+					  " `(_)-------(_)--'" };
+
+	for (int i = 0; i < 5; ++i)
+		texture[i] = tmp[i];
+
+	empty = "                  ";
+}
+
+int Truck::type()
+{
+	return 1;
+}
+
+
+
+Dinosaur::Dinosaur(int x, int y, int direction, int lowerLight, int upperLight)
+	: Obstacle(x, y, direction, lowerLight, upperLight)
+{
+	string tmp[5] = { "              / _)",
+					  "     _.----._/ /  ",
+					  "    /         /   ",
+					  " __/ (  | (  |    ",
+					  "/__.-'|_|--|_|    " };
+
+	for (int i = 0; i < 5; ++i)
+		texture[i] = tmp[i];
+
+	empty = "                  ";
+}
+
+int Dinosaur::type()
+{
+	return 2;
+}
+
+
+
+Bird::Bird(int x, int y, int direction, int lowerLight, int upperLight)
+	: Obstacle(x, y, direction, lowerLight, upperLight)
+{
+	string tmp[5] = { "       ",
+					  "<6)_ ,/",
+					  " (_==/ ",
+					  "  ='-  ",
+					  "       " };
+
+	for (int i = 0; i < 5; ++i)
+		texture[i] = tmp[i];
+
+	empty = "       ";
+}
+
+int Bird::type()
+{
+	return 3;
 }
