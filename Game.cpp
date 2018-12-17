@@ -63,6 +63,8 @@ void backgroundThread(Game* gP, bool* IS_RUNNING_P, bool* IS_PAUSE_P, bool* soun
 
 void soundThread(bool* SOUND_P, bool* soundOnP)
 {
+	srand(time(NULL));
+
 	while (true)
 	{
 		if (!*SOUND_P)
@@ -71,19 +73,31 @@ void soundThread(bool* SOUND_P, bool* soundOnP)
 		if (!*soundOnP)
 			continue;
 
-		PlaySound(TEXT("sound/car.wav"), NULL, SND_FILENAME);
+		int seed = rand() % 4;
 
-		if (!*SOUND_P)
+		switch (seed)
+		{
+		case 0:
+		{
+			PlaySound(TEXT("sound/car.wav"), NULL, SND_FILENAME);
 			break;
-		PlaySound(TEXT("sound/dinosaur.wav"), NULL, SND_FILENAME);
-
-		if (!*SOUND_P)
+		}
+		case 1:
+		{
+			PlaySound(TEXT("sound/dinosaur.wav"), NULL, SND_FILENAME);
 			break;
-		PlaySound(TEXT("sound/truck.wav"), NULL, SND_FILENAME);
-
-		if (!*SOUND_P)
+		}
+		case 2:
+		{
+			PlaySound(TEXT("sound/truck.wav"), NULL, SND_FILENAME);
 			break;
-		PlaySound(TEXT("sound/bird.wav"), NULL, SND_FILENAME);
+		}
+		case 3:
+		{
+			PlaySound(TEXT("sound/bird.wav"), NULL, SND_FILENAME);
+			break;
+		}
+		}
 	}
 }
 
@@ -98,16 +112,36 @@ void startGame()
 {
 	showConsoleCursor(false);
 
+	fixConsoleWindow();
+
+	cout << "Loading" << endl;
+	for (int i = 0; i < 150; ++i)
+	{
+		cout << ".";
+		Sleep(15);
+	}
+	system("cls");
+
 	int choose = 11;
 	int normal = 10;
 	int contColor = 8;
+	int hint = 6;
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), hint);
+	gotoXY(100, 0);
+	cout << "Press w, s to go up, down";
+	gotoXY(100, 1);
+	cout << "Press e to interact";
 
 	string menu[] = { "1. New game", "2. Continue game", "3. Load game", "4. Settings", "5. Exit" };
 	int len = 5;
 
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
 	for (int i = 0; i < len; ++i)
-		cout << menu[i] << endl;
+	{
+		gotoXY(0, i);
+		cout << menu[i];
+	}
 
 	bool soundOn = true;
 	int level = 0;
@@ -186,10 +220,19 @@ void startGame()
 
 			system("cls");
 
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), hint);
+			gotoXY(100, 0);
+			cout << "Press w, s to go up, down";
+			gotoXY(100, 1);
+			cout << "Press e to interact";
+
 			gotoXY(0, 0);
 			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
 			for (int i = 0; i < len; ++i)
-				cout << menu[i] << endl;
+			{
+				gotoXY(0, i);
+				cout << menu[i];
+			}
 		}
 
 		gotoXY(0, line);
@@ -210,6 +253,11 @@ void startGame()
 			else
 				line = 0;
 		}
+
+		if (stop)
+		{
+			SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 0);
+		}
 	}
 }
 
@@ -218,15 +266,25 @@ void settingsMenu(bool* soundOnP, int* levelP)
 	int choose = 11;
 	int normal = 10;
 	int soundColor = 7;
+	int hint = 6;
 
 	string menu[] = { "1. Sound: ", "2. Level: ", "3. Return" };
 	int len = 3;
 
 	system("cls");
 
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), hint);
+	gotoXY(100, 0);
+	cout << "Press w, s to go up, down";
+	gotoXY(100, 1);
+	cout << "Press e to interact";
+
 	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), normal);
 	for (int i = 0; i < len; ++i)
-		cout << menu[i] << endl;
+	{
+		gotoXY(0, i);
+		cout << menu[i];
+	}
 
 	int line = 0;
 
@@ -260,7 +318,7 @@ void settingsMenu(bool* soundOnP, int* levelP)
 			}
 			case 1:
 			{
-				if (*levelP < 4)
+				if (*levelP < 9)
 					++*levelP;
 				else
 					*levelP = 0;
@@ -314,24 +372,37 @@ Game::Game(int* levelP, bool* soundOnP)
 
 	srand(time(NULL));
 
-	for (int i = 0; i <= *levelP; i += 1)
-	{
-		random_device rd;
-		mt19937 g(rd());
+	random_device rd;
+	mt19937 g(rd());
 
+	vector<int> typeArr = { 0, 1, 2, 3 };
+	if (*levelP >= 5)
+		typeArr.push_back(rand() % 4);
+	shuffle(typeArr.begin(), typeArr.end(), g);
+
+	for (int i = 0; i < 4 + *levelP / 5; i += 1)
+	{
 		vector<int> arr = { 0, 1, 2, 3, 4 };
 		shuffle(arr.begin(), arr.end(), g);
 
 		int shift = rand() % 15;
 
-		int lower = 20 + 5 * i;
-		int upper = lower + 30 - 6 * i;
+		int lower = 50 + 5 * i + *levelP * 3;
+		int upper = lower + 40 - 6 * i - *levelP;
 
-		int type = rand() % 4;
+		int count = 0;
+		int seed = rand() % 100;
 
-		for (int j = 0; j < 2; ++j)
+		if (seed > 95 - *levelP * 1)
+			count = 3;
+		else if (seed > 80 - *levelP * 4)
+			count = 2;
+		else if (seed > 55 - *levelP * 5)
+			count = 1;
+
+		for (int j = 0; j < 1 + count; ++j)
 		{
-			Obstacle* tempOb = factory(type, (i + 1) * 6, arr[j] * 27 + shift, i % 2, lower, upper);
+			Obstacle* tempOb = factory(typeArr[i], (i + 1) * 6, arr[j] * 27 + shift, i % 2, lower, upper);
 			ve.push_back(tempOb);
 		}
 	}
@@ -462,7 +533,7 @@ void Game::run()
 			Sleep(100);
 			exitGame(&bgThread, &IS_RUNNING);
 
-			if (*levelP < 4)
+			if (*levelP < 9)
 			{
 				++(*levelP);
 				cout << "On to level " << (*levelP) << endl;
@@ -509,6 +580,21 @@ void Game::updateHuman()
 void Game::drawFull()
 {
 	system("cls");
+
+	int choose = 11;
+	int hint = 6;
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), hint);
+	gotoXY(140, 0);
+	cout << "w, a, s, d to move";
+	gotoXY(140, 1);
+	cout << "p to pause/unpause";
+	gotoXY(140, 2);
+	cout << "l, t to save/load";
+	gotoXY(140, 3);
+	cout << "esc to quit";
+
+	SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
 
 	string textureH[] = { "   ",
 		"   ",

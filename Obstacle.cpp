@@ -56,15 +56,21 @@ void Obstacle::Move()
 {
 	++lightCounter;
 
+	int choose = 11;
+
 	if (lightCounter == 1)
 	{
 		gotoXY(159, mX);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 2 * 16 + 2);
 		cout << "G";
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
 	}
 	else if (lightCounter == lowerLight)
 	{
 		gotoXY(159, mX);
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), 4 * 16 + 4);
 		cout << "R";
+		SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), choose);
 	}
 
 	if (lightCounter == upperLight)
@@ -83,13 +89,13 @@ void Obstacle::Move()
 
 
 Car::Car(int x, int y, int direction, int lowerLight, int upperLight)
-	: Obstacle(x, y, direction, lowerLight, upperLight)
+	: Obstacle(x, y, 1, lowerLight, upperLight)
 {
 	string tmp[5] = { "             ",
-					  "  ______     ",
-					  " /|_||_\\`.__ ",
-					  "(   _    _ _\\",
-					  "=`-(_)--(_)-'" };
+		"  ______     ",
+		" /|_||_\\`.__ ",
+		"(   _    _ _\\",
+		"=`-(_)--(_)-'" };
 	for (int i = 0; i < 5; ++i)
 		texture[i] = tmp[i];
 
@@ -104,13 +110,13 @@ int Car::type()
 
 
 Truck::Truck(int x, int y, int direction, int lowerLight, int upperLight)
-	: Obstacle(x, y, direction, lowerLight, upperLight)
+	: Obstacle(x, y, -1, lowerLight, upperLight)
 {
 	string tmp[5] = { "                  ",
-					  "      ____        ",
-					  " ____//_]|________",
-					  "(o _ |  -|   _  o|",
-					  " `(_)-------(_)--'" };
+		"      ____        ",
+		" ____//_]|________",
+		"(o _ |  -|   _  o|",
+		" `(_)-------(_)--'" };
 
 	for (int i = 0; i < 5; ++i)
 		texture[i] = tmp[i];
@@ -126,13 +132,13 @@ int Truck::type()
 
 
 Dinosaur::Dinosaur(int x, int y, int direction, int lowerLight, int upperLight)
-	: Obstacle(x, y, direction, lowerLight, upperLight)
+	: Obstacle(x, y, 1, lowerLight, upperLight)
 {
 	string tmp[5] = { "              / _)",
-					  "     _.----._/ /  ",
-					  "    /         /   ",
-					  " __/ (  | (  |    ",
-					  "/__.-'|_|--|_|    " };
+		"     _.----._/ /  ",
+		"    /         /   ",
+		" __/ (  | (  |    ",
+		"/__.-'|_|--|_|    " };
 
 	for (int i = 0; i < 5; ++i)
 		texture[i] = tmp[i];
@@ -148,13 +154,13 @@ int Dinosaur::type()
 
 
 Bird::Bird(int x, int y, int direction, int lowerLight, int upperLight)
-	: Obstacle(x, y, direction, lowerLight, upperLight)
+	: Obstacle(x, y, -1, lowerLight, upperLight)
 {
 	string tmp[5] = { "       ",
-					  "<6)_ ,/",
-					  " (_==/ ",
-					  "  ='-  ",
-					  "       " };
+		"<6)_ ,/",
+		" (_==/ ",
+		"  ='-  ",
+		"       " };
 
 	for (int i = 0; i < 5; ++i)
 		texture[i] = tmp[i];

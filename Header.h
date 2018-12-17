@@ -18,4 +18,6 @@ void gotoXY(int x, int y);
 
 void showConsoleCursor(bool showFlag);
 
+void fixConsoleWindow();
+
 #endif
